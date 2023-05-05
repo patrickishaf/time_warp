@@ -1,5 +1,5 @@
 use std::time::SystemTime;
-use crate::time_warp::difference::Difference;
+use crate::difference::Difference;
 
 pub static january: u32 = 1;
 pub static february: u32 = 2;
@@ -22,6 +22,7 @@ pub static friday: u32 = 6;
 pub static saturday: u32 = 7;
 pub static daysPerWeek: u32 = 7;
 
+#[derive(Debug)]
 pub struct DateTime {
     pub year: u32,
     pub month: u32,
@@ -35,6 +36,7 @@ pub struct DateTime {
 impl DateTime {
     pub fn now() -> Self {
         let current_time = SystemTime::now();
+        println!("{:?}", current_time);
         DateTime {
             year: 1999,
             month: 12,
@@ -128,5 +130,15 @@ impl DateTime {
             second: 30,
             weekday: 2,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn add_dates() {
+        let date = DateTime::now();
+        println!("{:?}", date);
     }
 }
