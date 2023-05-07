@@ -1,6 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
 use crate::difference::Difference;
+use crate::utils;
 
 const SECONDS_IN_A_DAY: u32 = 3600 * 24;
 const SECONDS_IN_A_YEAR: u32 = 3600 * 24 * 365;
@@ -145,6 +146,22 @@ impl DateTime {
             sum_of_days += quotient * 24;
             sum_of_hours = remainder;
         }
+        if self.month == FEBRUARY {
+            let current_month = FEBRUARY;
+            let days_in_current_month = utils::get_days_in_month(current_month, self.year);
+            if sum_of_days > days_in_current_month {
+                let remainder = sum_of_minutes % 24;
+                let quotient = sum_of_minutes / 24;
+                sum_of_days += quotient * 24;
+                sum_of_hours = remainder;
+            }
+        }
+        // if sum_of_hours > 24 {
+        //     let remainder = sum_of_minutes % 24;
+        //     let quotient = sum_of_minutes / 24;
+        //     sum_of_days += quotient * 24;
+        //     sum_of_hours = remainder;
+        // }
 
         DateTime {
             year: sum_of_years,
@@ -168,35 +185,6 @@ impl DateTime {
             weekday: 2,
         }
     }
-
-    fn get_days_in_month(&self, month_number: u32, year: u32) -> u32 {
-        let days_in_feb = self.get_days_in_february(year);
-        /*
-        The order of this array is very important. it should not be re-arranged.Every number here
-        corresponds to the number of days of the month at month_number - 1.
-        This means that January is month one, it has 31 days, and to get the number of days in January,
-        you pass 1 into this function as month_number and it will return the number at the index 1 - 1
-        which is 0. The number will be 31
-         */
-        let days_in_months = vec![31, days_in_feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        return days_in_months[(month_number as usize) - 1] as u32;
-    }
-
-    fn get_days_in_february(&self, year: u32) -> u32 {
-        if self.is_leap_year(year) {
-            29
-        } else {
-            28
-        }
-    }
-
-    fn is_leap_year(&self, year: u32) -> bool {
-        if year % 4 == 0 {
-            true
-        } else {
-            false
-        }
-    }
 }
 
 #[cfg(test)]
@@ -210,7 +198,31 @@ mod tests {
     }
 
     #[test]
-    fn add_dates_adds_minutes_and_seconds() {
+    fn add_dates_adds_seconds() {
+        let first_date = DateTime {
+            year: 1990,
+            month: 12,
+            day: 0,
+            hour: 3,
+            minute: 45,
+            second: 50,
+            weekday: 0,
+        };
+        let second_date = DateTime {
+            year: 1990,
+            month: 12,
+            day: 0,
+            hour: 1,
+            minute: 45,
+            second: 45,
+            weekday: 0,
+        };
+        let result = first_date.add(second_date);
+        assert_eq!(result.second, 35);
+    }
+
+    #[test]
+    fn add_dates_adds_minutes() {
         let first_date = DateTime {
             year: 1990,
             month: 12,
@@ -231,7 +243,29 @@ mod tests {
         };
         let result = first_date.add(second_date);
         assert_eq!(result.minute, 30);
-        assert_eq!(result.second, 35);
+    }
+
+    #[test]
+    fn add_dates_adds_hours() {
+        let first_date = DateTime {
+            year: 1990,
+            month: 12,
+            day: 0,
+            hour: 3,
+            minute: 45,
+            second: 50,
+            weekday: 0,
+        };
+        let second_date = DateTime {
+            year: 1990,
+            month: 12,
+            day: 0,
+            hour: 1,
+            minute: 45,
+            second: 45,
+            weekday: 0,
+        };
+        let result = first_date.add(second_date);
         assert_eq!(result.hour, 6);
     }
 
